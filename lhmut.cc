@@ -33,6 +33,8 @@ int main( int argc, char **argv )
         convertBase(baseStr, ref); // to upper & , . to ref
         mCharUlong mBaseNum = countBaseNum(baseStr);
 
+
+
 //        mStrUlong mInsNum, mDelNum;
         if ( baseStr.find("+") != string::npos ) {
 //            mInsNum = fetchInDel(baseStr, '+');
@@ -58,7 +60,6 @@ int main( int argc, char **argv )
   //      }
 
         cout << "~~" << chr << '\t' << pos << '\t' << ref << '\t' << depth << '\t';
-
         string bs = "TCGAN";
         for ( auto &b : bs ) {
             mCharUlong::const_iterator i = mBaseNum.find(b);
@@ -73,12 +74,14 @@ int main( int argc, char **argv )
             for ( auto &c : p.second ) cout << c << ' ';
         }
 
-        if ( mBaseNum.size() > 1 && opt.debug ) {
+        if ( llhV.size() > 1 && opt.debug ) {
             vector<pCharUlong> pv(mBaseNum.begin(), mBaseNum.end());
             sort(pv.begin(), pv.end(), _cmpBySecond);
 
-            cout << '\t' << pv.begin()->first << '\t' << 1 - pv.begin()->second/(double)depth << '\t' << llhV[0].first - llhV[1].first;
+            cout << '\t' << pv.begin()->first << '\t' << 1 - pv.begin()->second/(double)depth;
+            cout << '\t' << llhV[0].first - llhV[1].first;
         }
+
         cout << endl;
     }
 
