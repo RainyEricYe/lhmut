@@ -87,12 +87,14 @@ mStrUlong fetchInDel(string &s, char type)
         }
 
         length = atoi(len.c_str());
-        string indel( s.begin()+offset, s.begin()+offset+length );
-        m[indel]++;
+//        string indel( s.begin()+offset, s.begin()+offset+length );
+  //      m[indel]++;
 
         s.replace(p, offset-p+length, "");
-        cout << p << ' ' << length << ' ' << indel << '\n'
-            << "new seq: " << s << endl;
+        cout << offset << ' '<< p << ' ' << length << ' '
+            << offset-p+length << ' '
+            //<< indel << '\n'
+            << "\nnew seq: " << s << endl;
 
     }
 

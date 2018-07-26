@@ -35,9 +35,9 @@ int main( int argc, char **argv )
 
 
 
-//        mStrUlong mInsNum, mDelNum;
+        mStrUlong mInsNum, mDelNum;
         if ( baseStr.find("+") != string::npos ) {
-//            mInsNum = fetchInDel(baseStr, '+');
+            mInsNum = fetchInDel(baseStr, '+');
             continue;
         }
 
