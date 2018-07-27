@@ -55,44 +55,44 @@ int main( int argc, char **argv )
             mutN += p.second;
         }
 
-        cout << chr << '\t' << pos << '\t' << ref << '\t'
+        outf << chr << '\t' << ref << '\t' << pos << '\t'
              << depth << '\t' << mutN << '\t';
 
         string bs = "TCGA";
         for ( auto &b : bs ) {
             mCharUlong::const_iterator i = mBaseNum.find(b);
-            cout << ( i == mBaseNum.end() ? 0 : i->second ) << '\t';
+            outf << ( i == mBaseNum.end() ? 0 : i->second ) << '\t';
         }
 
         vector<pStrUlong> vInsNum = selectInDel(mInsNum);
         vector<pStrUlong> vDelNum = selectInDel(mDelNum);
 
-        cout << ( vInsNum.empty() ? 0 : vInsNum[0].second ) << '\t';
-        cout << ( vDelNum.empty() ? 0 : vDelNum[0].second ) << '\t';
+        outf << ( vInsNum.empty() ? 0 : vInsNum[0].second ) << '\t';
+        outf << ( vDelNum.empty() ? 0 : vDelNum[0].second ) << '\t';
 
         mCharUlong::const_iterator nit = mBaseNum.find('N');
-        cout << ( nit == mBaseNum.end() ? 0 : nit->second );
+        outf << ( nit == mBaseNum.end() ? 0 : nit->second );
 
 
         // detail info below
 
-        for ( auto &p : vInsNum ) cout << "\tI+" << p.first << ':' << p.second;
-        for ( auto &p : vDelNum ) cout << "\tD-" << p.first << ':' << p.second;
+        for ( auto &p : vInsNum ) outf << "\tI+" << p.first << ':' << p.second;
+        for ( auto &p : vDelNum ) outf << "\tD-" << p.first << ':' << p.second;
 
         for ( auto &p : llhV ) {
-            cout << '\t' << p.first << ':';
-            for ( auto &c : p.second ) cout << c;
+            outf << '\t' << p.first << ':';
+            for ( auto &c : p.second ) outf << c;
         }
 
         if ( llhV.size() > 1 && opt.debug ) {
             vector<pCharUlong> pv(mBaseNum.begin(), mBaseNum.end());
             sort(pv.begin(), pv.end(), _cmpBySecond);
 
-            cout << '\t' << pv.begin()->first << '\t' << 1 - pv.begin()->second/(double)depth;
-            cout << '\t' << llhV[0].first - llhV[1].first << "\tdetail";
+            outf << '\t' << pv.begin()->first << '\t' << 1 - pv.begin()->second/(double)depth;
+            outf << '\t' << llhV[0].first - llhV[1].first << "\tdetail";
         }
 
-        cout << endl;
+        outf << endl;
     }
 
     inf.close();
