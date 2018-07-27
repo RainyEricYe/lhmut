@@ -13,7 +13,7 @@ main.o: main.cc main.h
 
 compass_search.o:
 
-likelihood.o: likelihood.cc likelihood.h compass_search.* main.*
+likelihood.o: likelihood.cc likelihood.h compass_search.* main.h
 	$(CC) -c $< -o $@
 
 .PHONY: clean

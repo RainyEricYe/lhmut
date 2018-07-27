@@ -56,6 +56,7 @@ typedef map<string,ulong> mStrUlong;
 typedef map<string, vector<string> > mStrStrV;
 
 typedef pair<char,ulong> pCharUlong;
+typedef pair<string,ulong> pStrUlong;
 typedef pair<double, set<char> > pDoubleCharSet;
 
 typedef vector< set<char> > vCharSet;
@@ -64,11 +65,14 @@ typedef vector<string> vString;
 // descending sort pair
 inline bool _cmpByFirst(const pDoubleCharSet &a, const pDoubleCharSet &b) { return a.first > b.first; }
 inline bool _cmpBySecond(const pCharUlong &a, const pCharUlong &b) { return a.second > b.second; }
+inline bool _cmpBySecond_StrUlong(const pStrUlong &a, const pStrUlong &b) { return a.second > b.second; }
+
 
 void usage();
 void parseOption(int argc, char **argv, Option &opt);
 void replace (string &str, const string &from, const string &to, size_t more=0 );
 mStrUlong fetchInDel(string &seq, char type);
+vector< pair<string, ulong> > selectInDel( const mStrUlong &m );
 
 inline double errorRate(const char &q, const Option &opt)
 {

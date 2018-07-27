@@ -68,8 +68,8 @@ void replace (string &str, const string &from, const string &to, size_t more )
 mStrUlong fetchInDel(string &s, char type)
 {
     mStrUlong m;
-    cout << "old seq: " << s << endl;
-    size_t p;
+//    cout << "old seq: " << s << endl;
+    size_t p(0);
 
     while ( (p=s.find(type,p)) != string::npos ) {
         string len("");
@@ -87,16 +87,31 @@ mStrUlong fetchInDel(string &s, char type)
         }
 
         length = atoi(len.c_str());
-//        string indel( s.begin()+offset, s.begin()+offset+length );
-  //      m[indel]++;
+        string indel( s.begin()+offset, s.begin()+offset+length );
+        m[indel]++;
 
         s.replace(p, offset-p+length, "");
-        cout << offset << ' '<< p << ' ' << length << ' '
-            << offset-p+length << ' '
-            //<< indel << '\n'
-            << "\nnew seq: " << s << endl;
+  //      cout << offset << ' '<< p << ' ' << length << ' ' << offset-p+length << ' ' << indel
+//           << "\nnew seq: " << s << endl;
 
     }
 
+//    for ( auto &i:m ) cout << i.first << ' ' << i.second << ' ';
+  //  cout << endl;
+
     return m;
+}
+
+vector<pStrUlong> selectInDel( const mStrUlong &m )
+{
+    vector<pStrUlong> v( m.begin(), m.end() );
+
+    if ( v.size() > 1 )
+        sort( v.begin(), v.end(), _cmpBySecond_StrUlong );
+
+    for ( vector<pStrUlong>::iterator it = v.begin(); it != v.end(); it++ ) {
+        if ( countN(it->first) / (double)it->first.size() > 0.5 ) v.erase(it);
+    }
+
+    return v;
 }
