@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "likelihood.h"
+#include <boost/math/distributions/chi_squared.hpp>
 
 int main( int argc, char **argv )
 {
@@ -14,6 +15,9 @@ int main( int argc, char **argv )
 
     if ( !inf.is_open() )  cerr << "open error: " << opt.infileName << endl, exit(1);
     if ( !outf.is_open() ) cerr << "open error: " << opt.outfileName << endl, exit(1);
+
+    // chi-square distribution with degree of freedom == 1
+    boost::math::chi_squared X2_dist(1);
 
     outf <<
         "Chrom\tTemplate\tPos\tDepths\tMuts\t"
@@ -89,7 +93,10 @@ int main( int argc, char **argv )
             sort(pv.begin(), pv.end(), _cmpBySecond);
 
             outf << '\t' << pv.begin()->first << '\t' << 1 - pv.begin()->second/(double)depth;
-            outf << '\t' << llhV[0].first - llhV[1].first << "\tdetail";
+            outf << '\t' << llhV[0].first - llhV[1].first << "\tllhr: ";
+
+            double llhr = 2 * (llhV[0].first - llhV[1].first);
+            outf << llhr << "\tpvalue: " << 1 - boost::math::cdf(X2_dist, llhr);
         }
 
         outf << endl;
