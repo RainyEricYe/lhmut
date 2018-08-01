@@ -7,7 +7,7 @@ INCLUDE= -I /home/yerui/miniconda2/include/
 OBJS= main.o compass_search.o likelihood.o
 
 lhmut: lhmut.cc $(OBJS)
-	$(CC) $< $(OBJS) $(INCLUDE)  -o $@
+	$(CC) $< $(OBJS) -o $@
 
 main.o: main.cc main.h
 	$(CC) -c $< -o $@
@@ -15,7 +15,7 @@ main.o: main.cc main.h
 compass_search.o:
 
 likelihood.o: likelihood.cc likelihood.h compass_search.* main.h
-	$(CC) -c $< -o $@
+	$(CC) -c $< $(INCLUDE) -o $@
 
 .PHONY: clean
 

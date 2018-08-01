@@ -3,7 +3,7 @@
 
 #include "main.h"
 #include "likelihood.h"
-#include <boost/math/distributions/chi_squared.hpp>
+//#include <boost/math/distributions/chi_squared.hpp>
 
 int main( int argc, char **argv )
 {
@@ -17,7 +17,7 @@ int main( int argc, char **argv )
     if ( !outf.is_open() ) cerr << "open error: " << opt.outfileName << endl, exit(1);
 
     // chi-square distribution with degree of freedom == 1
-    boost::math::chi_squared X2_dist(1);
+    //boost::math::chi_squared X2_dist(1);
 
     outf <<
         "Chrom\tTemplate\tPos\tDepths\tMuts\t"
@@ -50,8 +50,7 @@ int main( int argc, char **argv )
             continue;
         }
 
-        vector<pDoubleCharSet> llhV = llh_genotype(baseStr, quaStr, opt);
-
+  //      string adjQuaStr = adjust_p(quaStr, opt);
 
         ulong mutN(0);
         for ( auto &p : mBaseNum ) {
@@ -83,20 +82,20 @@ int main( int argc, char **argv )
         for ( auto &p : vInsNum ) outf << "\tI+" << p.first << ':' << p.second;
         for ( auto &p : vDelNum ) outf << "\tD-" << p.first << ':' << p.second;
 
-        for ( auto &p : llhV ) {
-            outf << '\t' << p.first << ':';
-            for ( auto &c : p.second ) outf << c;
+//        mCharDouble ntP = llh_genotype(baseStr, adjQuaStr, opt);
+        mCharDouble ntP = llh_genotype(baseStr, quaStr, opt);
+        if ( ntP.empty() ) {
+            outf << endl;
+            continue;
         }
 
-        if ( llhV.size() > 1 && opt.debug ) {
-            vector<pCharUlong> pv(mBaseNum.begin(), mBaseNum.end());
-            sort(pv.begin(), pv.end(), _cmpBySecond);
+        vector< pCharDouble > vnp(ntP.begin(), ntP.end());
 
-            outf << '\t' << pv.begin()->first << '\t' << 1 - pv.begin()->second/(double)depth;
-            outf << '\t' << llhV[0].first - llhV[1].first << "\tllhr: ";
+        if ( vnp.size() > 1 )
+            sort(vnp.begin(), vnp.end(), _cmpBySecond_CharDouble);
 
-            double llhr = 2 * (llhV[0].first - llhV[1].first);
-            outf << llhr << "\tpvalue: " << 1 - boost::math::cdf(X2_dist, llhr);
+        for ( auto &p : vnp ) {
+            outf << '\t' << p.first << ':' << p.second;
         }
 
         outf << endl;

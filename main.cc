@@ -11,12 +11,12 @@ void usage() {
         "    -i [s]     input pileup file\n"
         "    -o [s]     output mutation file\n"
 
-        "    -q [i]     base quality cutoff [10]\n"
-        "    -s [i]     min support num on each strand [3]\n"
-        "    -f [f]     min fraction of alterative allele in a read family [0.001]\n"
+        "    -q [i]     base quality cutoff [20]\n"
+        "    -s [i]     min support num on each strand [1]\n"
+        "    -f [f]     min fraction of alterative allele in a read family [1e-3]\n"
 
-        "    -e [f]     precision of allele frequency while calculate likelihood ratio [0.0001]\n"
-        "    -g [f]     gap between likelihood ratios of major and rest genotypes [10.0]\n"
+        "    -e [f]     precision of allele frequency while calculate likelihood ratio [1e-5]\n"
+        "    -g [f]     gap between likelihood ratios of major and rest genotypes [5.0]\n"
         "    -x [i]     Encoding offset for phred quality scores [33]\n"
 
         "    -d         debug mode [false]\n"
@@ -68,7 +68,6 @@ void replace (string &str, const string &from, const string &to, size_t more )
 mStrUlong fetchInDel(string &s, char type)
 {
     mStrUlong m;
-//    cout << "old seq: " << s << endl;
     size_t p(0);
 
     while ( (p=s.find(type,p)) != string::npos ) {
@@ -92,26 +91,61 @@ mStrUlong fetchInDel(string &s, char type)
 
         s.replace(p, offset-p+length, "");
   //      cout << offset << ' '<< p << ' ' << length << ' ' << offset-p+length << ' ' << indel
-//           << "\nnew seq: " << s << endl;
+    //       << "\nnew seq: " << s << endl;
 
     }
-
-//    for ( auto &i:m ) cout << i.first << ' ' << i.second << ' ';
-  //  cout << endl;
 
     return m;
 }
 
 vector<pStrUlong> selectInDel( const mStrUlong &m )
 {
-    vector<pStrUlong> v( m.begin(), m.end() );
+//    vector<pStrUlong> v( m.begin(), m.end() );
+    vector<pStrUlong> v;
+
+    for ( auto &p : m ) {
+        if ( countN(p.first) / (double)p.first.size() > 0.5 ) continue;
+        v.push_back(p);
+    }
 
     if ( v.size() > 1 )
         sort( v.begin(), v.end(), _cmpBySecond_StrUlong );
+/*
+    vector< vector<pStrUlong>::iterator > fv;
 
     for ( vector<pStrUlong>::iterator it = v.begin(); it != v.end(); it++ ) {
-        if ( countN(it->first) / (double)it->first.size() > 0.5 ) v.erase(it);
+        if ( countN(it->first) / (double)it->first.size() > 0.5 ) fv.push_back(it);
     }
 
+    for ( auto & f : fv ) v.erase(f);
+*/
     return v;
+}
+
+string adjust_p(const string &qs, const Option &opt)
+{
+    ostringstream o;
+
+    map<double, vector<char> > m;
+    vector<double> v = quaToErrorRate(qs, opt);
+
+    if ( v.size() > 1 ) {
+        sort( v.begin(), v.end() );
+
+        ulong total( v.size() );
+        for ( size_t i(0); i != total; i++ ) {
+            m[ v[i] ].push_back( errorRateToChar(v[i], opt) );
+        }
+
+        for ( auto & q : qs) {
+            double e = errorRate(q, opt);
+            o << m[ e ].back();
+            m[ e ].pop_back();
+        }
+
+        return o.str();
+    }
+    else {
+        return qs;
+    }
 }

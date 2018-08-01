@@ -29,11 +29,11 @@ class Option {
         Option():
             infileName(""),
             outfileName(""),
-            baseQuaCutoff(10),
-            minSupOnEachStrand(3),
-            minFractionInFam(0.001),
-            freqPrecision(0.0001),
-            lhrGapCutoff(10.0),
+            baseQuaCutoff(20),
+            minSupOnEachStrand(1),
+            minFractionInFam(1e-3),
+            freqPrecision(1e-5),
+            lhrGapCutoff(5.0),
             phredOffset(33),
             debug(false) {}
 
@@ -58,6 +58,7 @@ typedef map<string, vector<string> > mStrStrV;
 typedef pair<char,ulong> pCharUlong;
 typedef pair<string,ulong> pStrUlong;
 typedef pair<double, set<char> > pDoubleCharSet;
+typedef pair<char,double> pCharDouble;
 
 typedef vector< set<char> > vCharSet;
 typedef vector<string> vString;
@@ -66,13 +67,14 @@ typedef vector<string> vString;
 inline bool _cmpByFirst(const pDoubleCharSet &a, const pDoubleCharSet &b) { return a.first > b.first; }
 inline bool _cmpBySecond(const pCharUlong &a, const pCharUlong &b) { return a.second > b.second; }
 inline bool _cmpBySecond_StrUlong(const pStrUlong &a, const pStrUlong &b) { return a.second > b.second; }
-
+inline bool _cmpBySecond_CharDouble(const pCharDouble &a, const pCharDouble &b) { return a.second > b.second; }
 
 void usage();
 void parseOption(int argc, char **argv, Option &opt);
 void replace (string &str, const string &from, const string &to, size_t more=0 );
 mStrUlong fetchInDel(string &seq, char type);
 vector< pair<string, ulong> > selectInDel( const mStrUlong &m );
+string adjust_p(const string &qs, const Option &opt);
 
 inline double errorRate(const char &q, const Option &opt)
 {
@@ -145,5 +147,10 @@ inline mCharUlong countBaseNum(const string &s)
     mCharUlong m;
     for ( auto &i : s ) m[i]++;
     return m;
+}
+
+inline char errorRateToChar(const double &q, const Option &opt)
+{
+    return char( opt.phredOffset - (int)(-10 * log(q) / log(10.0) ) );
 }
 #endif // MAIN_H_

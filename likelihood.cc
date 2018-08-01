@@ -9,7 +9,133 @@
 #include "compass_search.h"
 #include "main.h"
 #include "likelihood.h"
+#include <boost/math/distributions/chi_squared.hpp>
 
+mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
+{
+    // allele set which will be returned
+    //    set<char> ntS;
+    mCharDouble ntP; // nt --> pvalue
+    boost::math::chi_squared X2_dist(1);
+
+    // check frequent of alleles
+    mCharUlong fr;
+    double depth( s.size() );
+    double small_diff(1e-6);
+
+    for ( size_t i(0); i != depth; i++ ) {
+//        if ( lowQuality(q[i], opt) || s[i] == 'N' )  continue;
+        if ( s[i] == 'N' )  continue;
+        fr[ s[i] ]++;
+    }
+
+    if ( fr.empty() ) {
+        //        return ntS;
+        return ntP;
+    }
+
+    // sort by frequent
+    vector<pCharUlong> ntV( fr.begin(), fr.end() );
+    vector<double> errV = quaToErrorRate(q, opt);
+
+    // only one allele
+    if ( ntV.size() == 1 ) {
+        // if ( ntV[0].second >= opt.minSupOnEachStrand ) {
+        //   ntS.insert( ntV[0].first );
+        //}
+
+        pDoubleCharSet tmp = maxLogLikelihood(s,errV,ntV,opt,1);
+        for ( auto &e : errV ) tmp.first -= ( log(e/3) ); // null hypothesis
+
+        if ( tmp.first <= 0 ) {
+    //        cout << "only one: " << tmp.first << ' ' << ntV[0].first << ":" << ntV[0].second << endl;
+            tmp.first += small_diff;
+        }
+
+        ntP[ ntV[0].first ] = 1 - boost::math::cdf(X2_dist, 2*tmp.first);
+        //return ntS;
+        return ntP;
+    }
+
+    //    if ( ntV.size() > 1 )
+    //      sort( ntV.begin(), ntV.end(), _cmpBySecond ); // descending sort
+
+
+    if ( ntV.size() == 2 ) {
+        pDoubleCharSet two = maxLogLikelihood(s,errV,ntV,opt,2);
+
+        vector<pCharUlong> ntV_1, ntV_2;
+        ntV_1.push_back( ntV[1] );
+        ntV_2.push_back( ntV[0] );
+
+        pDoubleCharSet t1 = maxLogLikelihood(s,errV,ntV_1,opt,1);
+        pDoubleCharSet t2 = maxLogLikelihood(s,errV,ntV_2,opt,1);
+
+        if ( two.first - t1.first <= 0 ) {
+//            cout << "only two t1: " << t1.first << ' ' << two.first << endl;
+            t1.first -= small_diff;
+        }
+
+        if ( two.first - t2.first <= 0 ) {
+  //          cout << "only two t2: " << t2.first << ' ' << two.first << endl;
+            t2.first -= small_diff;
+        }
+
+
+        ntP[ ntV[0].first ] = 1 - boost::math::cdf(X2_dist, 2*(two.first - t1.first) );
+        ntP[ ntV[1].first ] = 1 - boost::math::cdf(X2_dist, 2*(two.first - t2.first) );
+
+        return ntP;
+    }
+
+    sort( ntV.begin(), ntV.end(), _cmpBySecond ); // descending sort
+
+    if ( ntV.size() > 3 )
+        ntV.pop_back();
+
+    if ( opt.debug )
+        for ( auto &nt : ntV ) cout << nt.first << "=>" << nt.second << ' ';
+
+    pDoubleCharSet three = maxLogLikelihood(s,errV,ntV,opt,3);
+
+    vector<pCharUlong> ntV1, ntV2, ntV3;
+    ntV1.push_back( ntV[1] );
+    ntV1.push_back( ntV[2] );
+
+    ntV2.push_back( ntV[0] );
+    ntV2.push_back( ntV[2] );
+
+    ntV3.push_back( ntV[0] );
+    ntV3.push_back( ntV[1] );
+
+    pDoubleCharSet tm1 = maxLogLikelihood(s,errV,ntV1,opt,2);
+    pDoubleCharSet tm2 = maxLogLikelihood(s,errV,ntV2,opt,2);
+    pDoubleCharSet tm3 = maxLogLikelihood(s,errV,ntV3,opt,2);
+
+    if ( three.first - tm1.first <= 0 ) { 
+        //cout << "three tm1: " << tm1.first << endl;
+        tm1.first -= small_diff;
+    }
+
+    if ( three.first - tm2.first <= 0 ) { 
+        //cout << "three tm2: " << tm2.first << endl;
+        tm2.first -= small_diff;
+    }
+
+    if ( three.first - tm3.first <= 0 ) { 
+        //cout << "three tm3: " << tm3.first << endl;
+        tm3.first -= small_diff;
+    }
+
+    ntP[ ntV[0].first ] = 1 - boost::math::cdf(X2_dist, 2*(three.first - tm1.first) );
+    ntP[ ntV[1].first ] = 1 - boost::math::cdf(X2_dist, 2*(three.first - tm2.first) );
+    ntP[ ntV[2].first ] = 1 - boost::math::cdf(X2_dist, 2*(three.first - tm3.first) );
+
+    return ntP;
+
+
+}
+/*
 vector<pDoubleCharSet> llh_genotype(const string &s, const string &q, const Option &opt)
 {
     set<char> ntS;
@@ -30,14 +156,6 @@ vector<pDoubleCharSet> llh_genotype(const string &s, const string &q, const Opti
 
     // sort by frequent
     vector<pCharUlong> ntV( fr.begin(), fr.end() );
-/*
-    if ( opt.debug ) {
-        for ( auto &p : ntV ) {
-            cout << p.first << ':' << p.second << ' ';
-        }
-        cout << '\n';
-    }
-*/
     // only one allele
     if ( ntV.size() == 1 ) {
         if ( ntV[0].second >= opt.minSupOnEachStrand ) {
@@ -113,6 +231,8 @@ vector<pDoubleCharSet> llh_genotype(const string &s, const string &q, const Opti
     // four alleles is really rare, so do not consider it here
     return llhV;
 }
+*/
+
 
 pDoubleCharSet maxLogLikelihood(const string &s, const vector<double> &e, const vector<pCharUlong> &v, const Option &opt, const int mode)
 {
