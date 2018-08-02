@@ -13,9 +13,9 @@ void usage() {
 
         "    -q [i]     base quality cutoff [20]\n"
         "    -s [i]     min support num on each strand [1]\n"
-        "    -f [f]     min fraction of alterative allele in a read family [1e-3]\n"
+        "    -f [f]     min fraction of alterative allele in a read family [1e-5]\n"
 
-        "    -e [f]     precision of allele frequency while calculate likelihood ratio [1e-5]\n"
+        "    -e [f]     precision of allele frequency while calculate likelihood ratio [1e-8]\n"
         "    -g [f]     gap between likelihood ratios of major and rest genotypes [5.0]\n"
         "    -x [i]     Encoding offset for phred quality scores [33]\n"
 

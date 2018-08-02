@@ -31,8 +31,8 @@ class Option {
             outfileName(""),
             baseQuaCutoff(20),
             minSupOnEachStrand(1),
-            minFractionInFam(1e-3),
-            freqPrecision(1e-5),
+            minFractionInFam(1e-5),
+            freqPrecision(1e-8),
             lhrGapCutoff(5.0),
             phredOffset(33),
             debug(false) {}

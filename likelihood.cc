@@ -21,7 +21,7 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     // check frequent of alleles
     mCharUlong fr;
     double depth( s.size() );
-    double small_diff(1e-6);
+    double small_diff(opt.freqPrecision);
 
     for ( size_t i(0); i != depth; i++ ) {
 //        if ( lowQuality(q[i], opt) || s[i] == 'N' )  continue;
@@ -327,8 +327,8 @@ pDoubleCharSet maxLogLikelihood(const string &s, const vector<double> &e, const 
         //
         // although 3 alleles, only two free variables, maximize the function of two variables.
 
-        double delta(0.01);
-        double delta_tol(0.00001);
+        double delta(opt.minFractionInFam);
+        double delta_tol(opt.freqPrecision);
         double fx;
         int k;
         int k_max(20000);
