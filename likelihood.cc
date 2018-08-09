@@ -24,8 +24,8 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     double small_diff(opt.freqPrecision);
 
     for ( size_t i(0); i != depth; i++ ) {
-//        if ( lowQuality(q[i], opt) || s[i] == 'N' )  continue;
-        if ( s[i] == 'N' )  continue;
+        if ( lowQuality(q[i], opt) || s[i] == 'N' )  continue;
+//        if ( s[i] == 'N' )  continue;
         fr[ s[i] ]++;
     }
 
