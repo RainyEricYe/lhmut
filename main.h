@@ -33,7 +33,7 @@ class Option {
             minSupOnEachStrand(1),
             minFractionInFam(1e-5),
             freqPrecision(1e-8),
-            lhrGapCutoff(5.0),
+            lhrGapCutoff(2.0),
             phredOffset(33),
             debug(false) {}
 

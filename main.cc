@@ -16,7 +16,7 @@ void usage() {
         "    -f [f]     min fraction of alterative allele in a read family [1e-5]\n"
 
         "    -e [f]     precision of allele frequency while calculate likelihood ratio [1e-8]\n"
-        "    -g [f]     gap between likelihood ratios of major and rest genotypes [5.0]\n"
+        "    -g [f]     gap between likelihood ratios of major and rest genotypes [2.0]\n"
         "    -x [i]     Encoding offset for phred quality scores [33]\n"
 
         "    -d         debug mode [false]\n"
