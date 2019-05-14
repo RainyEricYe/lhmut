@@ -3,7 +3,6 @@
 
 #include "main.h"
 #include "likelihood.h"
-//#include <boost/math/distributions/chi_squared.hpp>
 
 int main( int argc, char **argv )
 {
@@ -15,9 +14,6 @@ int main( int argc, char **argv )
 
     if ( !inf.is_open() )  cerr << "open error: " << opt.infileName << endl, exit(1);
     if ( !outf.is_open() ) cerr << "open error: " << opt.outfileName << endl, exit(1);
-
-    // chi-square distribution with degree of freedom == 1
-    //boost::math::chi_squared X2_dist(1);
 
     outf <<
         "Chrom\tTemplate\tPos\tDepths\tMuts\t"
@@ -50,8 +46,6 @@ int main( int argc, char **argv )
             continue;
         }
 
-  //      string adjQuaStr = adjust_p(quaStr, opt);
-
         ulong mutN(0);
         for ( auto &p : mBaseNum ) {
             if ( p.first == ref || p.first == '*' ) continue;  // not ref, ins, del
@@ -82,8 +76,8 @@ int main( int argc, char **argv )
         for ( auto &p : vInsNum ) outf << "\tI+" << p.first << ':' << p.second;
         for ( auto &p : vDelNum ) outf << "\tD-" << p.first << ':' << p.second;
 
-//        mCharDouble ntP = llh_genotype(baseStr, adjQuaStr, opt);
         mCharDouble ntP = llh_genotype(baseStr, quaStr, opt);
+
         if ( ntP.empty() ) {
             outf << endl;
             continue;
