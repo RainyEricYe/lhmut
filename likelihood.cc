@@ -79,10 +79,19 @@ string initAlleleFreq (
     ostringstream s;
     s << '[';
 
-    for ( auto b : "ACGT" ) {
-        b == except_b ? s << 0.0 : s << fr[b] / (depth - fr[except_b]);
-        b == 'T' ? s << ']' : s << ',';
-        if ( b== 'T' ) break;
+    if ( depth == fr[except_b] ) {
+        for ( auto b : "ACGT" ) {
+            b == except_b ? s << 0.0 : s << 0.3333333;
+            b == 'T' ? s << ']' : s << ',';
+            if ( b == 'T' ) break;
+        }
+    }
+    else {
+        for ( auto b : "ACGT" ) {
+            b == except_b ? s << 0.0 : s << fr[b] / (depth - fr[except_b]);
+            b == 'T' ? s << ']' : s << ',';
+            if ( b== 'T' ) break;
+        }
     }
     return s.str();
 }
@@ -132,6 +141,7 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     // four allele maximize
     //alglib::real_1d_array alg_x = "[0.25,0.25,0.25,0.25]";
     string AFstr = initAlleleFreq(fr, depth, 'N');
+    //cout << AFstr << endl;
     alglib::real_1d_array alg_x = AFstr.c_str();
     alglib::real_2d_array c = "[[1,1,1,1,1]]";
     alglib::integer_1d_array ct = "[0]";
