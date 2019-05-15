@@ -79,7 +79,7 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
 
     double cl_4 = composite_LogLikelihood( data.base, data.errRateV, d.hatTheta_c );
     if ( opt.debug ) cout << "l_c_hatTheta_c: " << setprecision(20) << cl_4 << endl;
-/*
+
     alglib::real_1d_array fn_x = "[0.25,0.25,0.25,0.25]";
 
     double lm_4(0.0);
@@ -106,12 +106,12 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     if ( lm_4 == 0.0)
         lm_4 = get_l_M_theta_origin( d.base, d.errRateV, fnt, d.hatTheta_c, d.errRateFrac );
 
-    if ( int(rep.terminationtype) != 4 || fn_x[3] > 1e-9 ) lm_4 = cl_4;
+    if ( int(rep.terminationtype) != 4 ) lm_4 = cl_4;
 
     //cout << "l_M_theta: " << lm_4 << endl;
 
 //    cout << "~~~ test alglib at frac(T) = 0 ~~~" << endl;
-*/
+
     map<char, string> init_V;
     map<char, string> bndu_V;
 
@@ -157,7 +157,7 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
 
         double cl_3 = composite_LogLikelihood( d.base, d.errRateV, d.hatTheta_c );
         if ( opt.debug ) cout << "3 l_c_hatTheta_c: " << cl_3 << endl;
-/*
+
         alglib::real_1d_array fn_x = init_V[ it->first ].c_str();
 
         double lm_3(0.0);
@@ -187,19 +187,21 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
         if (lm_3 == 0.0)
             lm_3 = get_l_M_theta_origin( d.base, d.errRateV, fnt, d.hatTheta_c, d.errRateFrac );
 
-        if ( int(rep.terminationtype) != 4 || fn_x[3] > 1e-9 ) lm_3 = cl_3;
+        if ( int(rep.terminationtype) != 4 ) lm_3 = cl_3;
 
         //cout << "3 l_M_theta: " << lm_3 << endl;
-*/
-        boost::math::chi_squared X2_dist(1);
+
+//        boost::math::chi_squared X2_dist(1);
 
 //        cout << "cl: " << 1 - boost::math::cdf(X2_dist, 2*(cl_4 - cl_3) ) << endl;
   //      cout << "lm: " << 1 - boost::math::cdf(X2_dist, 2*(lm_4 - lm_3) ) << endl;
-        if ( cl_4 - cl_3 > opt.lhrGapCutoff )
-            ntP[ it->first ] = 1 - boost::math::cdf(X2_dist, 2*(cl_4 - cl_3) );
+  //      if ( cl_4 - cl_3 > opt.lhrGapCutoff )
+    //        ntP[ it->first ] = 1 - boost::math::cdf(X2_dist, 2*(cl_4 - cl_3) );
+    //
+        if ( lm_4 - lm_3 > opt.lhrGapCutoff )
+            ntP[ it->first ] = 1 - boost::math::cdf(X2_dist, 2*(lm_4 - lm_3) );
     }
 
     return ntP;
-
 
 }
