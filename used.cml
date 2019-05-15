@@ -7,3 +7,7 @@ g++ -Wall -O3 -larmadillo -L /home/yerui/miniconda2/lib/ -I /home/yerui/minicond
  g++ -Wall -O3 -larmadillo -L /home/yerui/miniconda2/lib/ -I /home/yerui/miniconda2/include -I /home/yerui/src/alglib-3.14.0/src -c likelihood.cc -o likelihood.o -I /home/yerui/src/alglib-3.14.0/src
 
  g++ -Wall -O3 lhmut.cc main.o likelihood.o MCL.o optim.o -o lhmut -I /home/yerui/miniconda2/include/ /home/yerui/src/alglib-3.14.0/src/*.o -L /home/yerui/miniconda2/lib -larmadillo
+
+# accelarate by discarding armadillo and optim.h
+g++ -Wall -L /home/yerui/miniconda2/lib/ -I /home/yerui/miniconda2/include -I /home/yerui/src/alglib-3.14.0/src -c likelihood.cc -o likelihood.o -I /home/yerui/src/alglib-3.14.0/src
+ g++ -Wall -O3 lhmut.cc main.o likelihood.o -o lhmut -L /home/yerui/miniconda2/lib/ -I /home/yerui/miniconda2/include -I /home/yerui/src/alglib-3.14.0/src /home/yerui/src/alglib-3.14.0/src/*.o

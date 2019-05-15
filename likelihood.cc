@@ -10,11 +10,66 @@
 #include "likelihood.h"
 #include <boost/math/distributions/chi_squared.hpp>
 
-#include <armadillo>
-#include "MCL.h"
-#include "optim.h"
+// needed by alglib
+#include "stdafx.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include "optimization.h"
+#include "ap.h"
 
-using namespace arma;
+//#include "optim.h"
+//using namespace arma;
+
+// composite log likelihood: l_c(theta)
+// mat theta is a column vector which has 4 elements for A, C, G, T, respectively.
+//
+double composite_LogLikelihood (
+        const string         &base,
+        const vector<double> &errRateV,
+        const alglib::real_1d_array  &theta )
+{
+    double l_c(0.0);
+
+    for (size_t i(0); i != base.size(); i++ ) {
+        const double &e = errRateV[i];
+        switch( base[i] ) {
+            case 'A': l_c += log( (1-4*e/3) * theta(0) + e/3 ); break;
+            case 'C': l_c += log( (1-4*e/3) * theta(1) + e/3 ); break;
+            case 'G': l_c += log( (1-4*e/3) * theta(2) + e/3 ); break;
+            case 'T': l_c += log( (1-4*e/3) * theta(3) + e/3 ); break;
+            default: cerr << "unknown base in " << base << endl,exit(1);
+        }
+    }
+
+    return l_c;
+}
+
+// composite score function: U_c(theta)
+// return a column vector
+//
+alglib::real_1d_array composite_score (
+        const string         &base,
+        const vector<double> &errRateV,
+        const alglib::real_1d_array  &theta )
+{
+   // mat U_c(4, 1, fill::zeros);
+    alglib::real_1d_array U_c = "[0,0,0,0]";
+
+    for (size_t i(0); i != base.size(); i++ ) {
+        const double &e = errRateV[i];
+
+        switch( base[i] ) {
+            case 'A': U_c(0) -= (1-4*e/3) / ( (1-4*e/3)*theta(0) + e/3 );  break;
+            case 'C': U_c(1) -= (1-4*e/3) / ( (1-4*e/3)*theta(1) + e/3 );  break;
+            case 'G': U_c(2) -= (1-4*e/3) / ( (1-4*e/3)*theta(2) + e/3 );  break;
+            case 'T': U_c(3) -= (1-4*e/3) / ( (1-4*e/3)*theta(3) + e/3 );  break;
+            default: cerr << "unknown base in " << base << endl, exit(1);
+        }
+    }
+
+    return U_c;
+}
 
 mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
 {
@@ -37,19 +92,9 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     vector<double> errV = quaToErrorRate(new_q, opt);
 
     fn_data data;
-    lm_data d;
 
     data.base = new_s;
     data.errRateV = errV;
-
-    d.base = new_s;
-    d.errRateV = errV;
-
-    map<double, double> errRateFrac;
-    for ( auto e : errV ) {
-        errRateFrac[e] += 1.0 / (double)errV.size();
-    }
-    d.errRateFrac = errRateFrac;
 
     // four allele maximize
     alglib::real_1d_array alg_x = "[0.25,0.25,0.25,0.25]";
@@ -75,11 +120,9 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     //printf("%d\n", int(rep.terminationtype)); // EXPECTED: 4
     if ( opt.debug ) printf("%s\n", alg_x.tostring(20).c_str());
 
-    for ( size_t i(0); i < 4; i++ ) d.hatTheta_c(i) = alg_x[i];
-
-    double cl_4 = composite_LogLikelihood( data.base, data.errRateV, d.hatTheta_c );
+    double cl_4 = composite_LogLikelihood( data.base, data.errRateV, alg_x );
     if ( opt.debug ) cout << "l_c_hatTheta_c: " << setprecision(20) << cl_4 << endl;
-
+/*
     alglib::real_1d_array fn_x = "[0.25,0.25,0.25,0.25]";
 
     double lm_4(0.0);
@@ -109,7 +152,7 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     if ( int(rep.terminationtype) != 4 ) lm_4 = cl_4;
 
     //cout << "l_M_theta: " << lm_4 << endl;
-
+*/
 //    cout << "~~~ test alglib at frac(T) = 0 ~~~" << endl;
 
     map<char, string> init_V;
@@ -153,11 +196,9 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
         //printf("%d\n", int(rep.terminationtype)); // EXPECTED: 4
         if ( opt.debug ) printf("%s\n", alg_x.tostring(20).c_str());
 
-        for ( size_t i(0); i < 4; i++ ) d.hatTheta_c(i) = alg_x[i];
-
-        double cl_3 = composite_LogLikelihood( d.base, d.errRateV, d.hatTheta_c );
+        double cl_3 = composite_LogLikelihood( data.base, data.errRateV, alg_x );
         if ( opt.debug ) cout << "3 l_c_hatTheta_c: " << cl_3 << endl;
-
+/*
         alglib::real_1d_array fn_x = init_V[ it->first ].c_str();
 
         double lm_3(0.0);
@@ -190,18 +231,29 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
         if ( int(rep.terminationtype) != 4 ) lm_3 = cl_3;
 
         //cout << "3 l_M_theta: " << lm_3 << endl;
-
+*/
 //        boost::math::chi_squared X2_dist(1);
 
 //        cout << "cl: " << 1 - boost::math::cdf(X2_dist, 2*(cl_4 - cl_3) ) << endl;
   //      cout << "lm: " << 1 - boost::math::cdf(X2_dist, 2*(lm_4 - lm_3) ) << endl;
-  //      if ( cl_4 - cl_3 > opt.lhrGapCutoff )
-    //        ntP[ it->first ] = 1 - boost::math::cdf(X2_dist, 2*(cl_4 - cl_3) );
+        if ( cl_4 - cl_3 > opt.lhrGapCutoff )
+            ntP[ it->first ] = 1 - boost::math::cdf(X2_dist, 2*(cl_4 - cl_3) );
     //
-        if ( lm_4 - lm_3 > opt.lhrGapCutoff )
-            ntP[ it->first ] = 1 - boost::math::cdf(X2_dist, 2*(lm_4 - lm_3) );
+  //      if ( lm_4 - lm_3 > opt.lhrGapCutoff )
+    //        ntP[ it->first ] = 1 - boost::math::cdf(X2_dist, 2*(lm_4 - lm_3) );
     }
 
     return ntP;
 
 }
+
+void function1_grad(const alglib::real_1d_array &x, double &func, alglib::real_1d_array &grad, void *opt_data)
+{
+    fn_data* objfn_data = reinterpret_cast<fn_data*>(opt_data);
+    const std::string &base = objfn_data->base;
+    const std::vector<double> &errRateV = objfn_data->errRateV;
+
+    func = -composite_LogLikelihood( base, errRateV, x);
+    grad = composite_score( base, errRateV, x );
+}
+
