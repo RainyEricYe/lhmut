@@ -1,0 +1,9 @@
+/home2/groups/pcsham/users/yerui/PMO/3.mitochondria_heteroplasmy/1.simulate_data/5.simu.rCRS.mixRef.randomInsertSize.moreVar.highErrorRate/3.mixCopy.dcs2.3.bamReAln/10000.1e6/test/
+
+g++ -Wall -O3 -c MCL.cc -o MCL.o -larmadillo -L /home/yerui/miniconda2/lib/ -I /home/yerui/miniconda2/include/
+
+g++ -Wall -O3 -larmadillo -L /home/yerui/miniconda2/lib/ -I /home/yerui/miniconda2/include -I /home/yerui/src/alglib-3.14.0/src -c optim.cc -o optim.o
+
+ g++ -Wall -O3 -larmadillo -L /home/yerui/miniconda2/lib/ -I /home/yerui/miniconda2/include -I /home/yerui/src/alglib-3.14.0/src -c likelihood.cc -o likelihood.o -I /home/yerui/src/alglib-3.14.0/src
+
+ g++ -Wall -O3 lhmut.cc main.o likelihood.o MCL.o optim.o -o lhmut -I /home/yerui/miniconda2/include/ /home/yerui/src/alglib-3.14.0/src/*.o -L /home/yerui/miniconda2/lib -larmadillo
