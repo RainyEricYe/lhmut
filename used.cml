@@ -11,3 +11,5 @@ g++ -Wall -O3 -larmadillo -L /home/yerui/miniconda2/lib/ -I /home/yerui/minicond
 # accelarate by discarding armadillo and optim.h
 g++ -Wall -L /home/yerui/miniconda2/lib/ -I /home/yerui/miniconda2/include -I /home/yerui/src/alglib-3.14.0/src -c likelihood.cc -o likelihood.o -I /home/yerui/src/alglib-3.14.0/src
  g++ -Wall -O3 lhmut.cc main.o likelihood.o -o lhmut -L /home/yerui/miniconda2/lib/ -I /home/yerui/miniconda2/include -I /home/yerui/src/alglib-3.14.0/src /home/yerui/src/alglib-3.14.0/src/*.o
+
+# 2312499 with accurate initial variables while 496336d with fixed initial variables. Interestingly, the speed of them are almost same.
