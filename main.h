@@ -3,7 +3,7 @@
 #define MAIN_H_
 
 #define PROGRAM "lhmut"
-#define VERSION "v0.1"
+#define VERSION "v0.2"
 #define AUTHORS "Rui YE"
 #define CONTACT "yerui@connect.hku.hk"
 #define REMARKS "(likelihood-based mutation detector)"

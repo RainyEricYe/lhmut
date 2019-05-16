@@ -56,7 +56,7 @@ void parseOption(int argc, char **argv, Option &opt) {
 void replace (string &str, const string &from, const string &to, size_t more )
 {
     size_t pos;
-    size_t offset = 0;
+    size_t offset(0);
     const size_t increment = to.size();
 
     while ((pos = str.find(from, offset)) != string::npos) {
@@ -72,7 +72,7 @@ mStrUlong fetchInDel(string &s, char type)
 
     while ( (p=s.find(type,p)) != string::npos ) {
         string len("");
-        size_t offset;
+        size_t offset(0);
         size_t length;
 
         for ( size_t i(p+1); i != s.size(); i++ ) {
