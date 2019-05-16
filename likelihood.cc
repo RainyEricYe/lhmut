@@ -18,9 +18,6 @@
 #include "optimization.h"
 #include "ap.h"
 
-//#include "optim.h"
-//using namespace arma;
-
 // composite log likelihood: l_c(theta)
 // mat theta is a column vector which has 4 elements for A, C, G, T, respectively.
 //
@@ -34,10 +31,10 @@ double composite_LogLikelihood (
     for (size_t i(0); i != base.size(); i++ ) {
         const double &e = errRateV[i];
         switch( base[i] ) {
-            case 'A': l_c += log( (1-4*e/3) * theta(0) + e/3 ); break;
-            case 'C': l_c += log( (1-4*e/3) * theta(1) + e/3 ); break;
-            case 'G': l_c += log( (1-4*e/3) * theta(2) + e/3 ); break;
-            case 'T': l_c += log( (1-4*e/3) * theta(3) + e/3 ); break;
+            case 'A': l_c += log( (1-4*e/3) * theta[0] + e/3 ); break;
+            case 'C': l_c += log( (1-4*e/3) * theta[1] + e/3 ); break;
+            case 'G': l_c += log( (1-4*e/3) * theta[2] + e/3 ); break;
+            case 'T': l_c += log( (1-4*e/3) * theta[3] + e/3 ); break;
             default: cerr << "unknown base in " << base << endl,exit(1);
         }
     }
@@ -45,7 +42,7 @@ double composite_LogLikelihood (
     return l_c;
 }
 
-// composite score function: U_c(theta)
+// -composite score function: -U_c(theta)
 // return a column vector
 //
 alglib::real_1d_array composite_score (
@@ -53,22 +50,36 @@ alglib::real_1d_array composite_score (
         const vector<double> &errRateV,
         const alglib::real_1d_array  &theta )
 {
-   // mat U_c(4, 1, fill::zeros);
     alglib::real_1d_array U_c = "[0,0,0,0]";
 
     for (size_t i(0); i != base.size(); i++ ) {
         const double &e = errRateV[i];
 
         switch( base[i] ) {
-            case 'A': U_c(0) -= (1-4*e/3) / ( (1-4*e/3)*theta(0) + e/3 );  break;
-            case 'C': U_c(1) -= (1-4*e/3) / ( (1-4*e/3)*theta(1) + e/3 );  break;
-            case 'G': U_c(2) -= (1-4*e/3) / ( (1-4*e/3)*theta(2) + e/3 );  break;
-            case 'T': U_c(3) -= (1-4*e/3) / ( (1-4*e/3)*theta(3) + e/3 );  break;
+            case 'A': U_c[0] -= (1-4*e/3) / ( (1-4*e/3)*theta[0] + e/3 );  break;
+            case 'C': U_c[1] -= (1-4*e/3) / ( (1-4*e/3)*theta[1] + e/3 );  break;
+            case 'G': U_c[2] -= (1-4*e/3) / ( (1-4*e/3)*theta[2] + e/3 );  break;
+            case 'T': U_c[3] -= (1-4*e/3) / ( (1-4*e/3)*theta[3] + e/3 );  break;
             default: cerr << "unknown base in " << base << endl, exit(1);
         }
     }
 
     return U_c;
+}
+
+// gradient optimization
+void function1_grad (
+        const alglib::real_1d_array  &x,
+        double                       &func,
+        alglib::real_1d_array        &grad,
+        void                         *opt_data )
+{
+    fn_data* objfn_data = reinterpret_cast<fn_data*>(opt_data);
+    const std::string &base = objfn_data->base;
+    const std::vector<double> &errRateV = objfn_data->errRateV;
+
+    func = -composite_LogLikelihood( base, errRateV, x);
+    grad = composite_score( base, errRateV, x );
 }
 
 string initAlleleFreq (
@@ -81,7 +92,7 @@ string initAlleleFreq (
 
     if ( depth == fr[except_b] ) {
         for ( auto b : "ACGT" ) {
-            b == except_b ? s << 0.0 : s << 0.3333333;
+            b == except_b ? s << 0.0 : s << 0.333333333;
             b == 'T' ? s << ']' : s << ',';
             if ( b == 'T' ) break;
         }
@@ -116,57 +127,64 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     boost::math::chi_squared X2_dist(1);
 
     mCharUlong fr;
-    double depth(0.0);
     for ( auto b : "ACGTN" ) {
         fr[b] = 0;
         if ( b == 'N' ) break;
     }
-    // fr['N'] should always be 0
 
     string new_s(""), new_q("");
     for ( size_t i(0); i != s.size(); i++ ) {
-        if ( lowQuality(q[i], opt) || s[i] == 'N' )  continue;
+        if ( lowQuality(q[i], opt) || s[i] == 'N' )  continue; // fr['N'] == 0
         fr[ s[i] ]++;
         new_s += s[i];
         new_q += q[i];
-        depth++;
     }
 
+    double depth(new_s.size());
     vector<double> errV = quaToErrorRate(new_q, opt);
 
     fn_data data;
     data.base = new_s;
     data.errRateV = errV;
 
-    // four allele maximize
-    //alglib::real_1d_array alg_x = "[0.25,0.25,0.25,0.25]";
-    string AFstr = initAlleleFreq(fr, depth, 'N');
-    //cout << AFstr << endl;
-    alglib::real_1d_array alg_x = AFstr.c_str();
-    alglib::real_2d_array c = "[[1,1,1,1,1]]";
-    alglib::integer_1d_array ct = "[0]";
+    // var for alglib
     alglib::minbleicstate state;
     alglib::minbleicreport rep;
+    double epsg(0.000001);
+    double epsf(0.0);
+    double epsx(0.0);
+    alglib::ae_int_t maxits(0);
+
+    // constraint: sum of frequency of 4 alleles == 1
+    alglib::real_2d_array c = "[[1,1,1,1,1]]";
+    alglib::integer_1d_array ct = "[0]";
     alglib::real_1d_array bndl = "[0,0,0,0]";
-    alglib::real_1d_array bndu = "[1,1,1,1]";
 
-    double epsg = 0.000001;
-    double epsf = 0;
-    double epsx = 0;
-    alglib::ae_int_t maxits = 0;
+    // four allele maximize
+    double cl_4(0.0);
+    try {
+        string AFstr = initAlleleFreq(fr, depth, 'N');
+        alglib::real_1d_array alg_x = AFstr.c_str();
+        alglib::real_1d_array bndu = "[1,1,1,1]";
 
-    alglib::minbleiccreate(alg_x, state);
-    alglib::minbleicsetlc(state, c, ct);
-    alglib::minbleicsetbc(state, bndl, bndu);
-    alglib::minbleicsetcond(state, epsg, epsf, epsx, maxits);
-    alglib::minbleicoptimize(state, function1_grad, NULL, &data );
-    alglib::minbleicresults(state, alg_x, rep);
+        alglib::minbleiccreate(alg_x, state);
+        alglib::minbleicsetlc(state, c, ct);
+        alglib::minbleicsetbc(state, bndl, bndu);
+        alglib::minbleicsetcond(state, epsg, epsf, epsx, maxits);
+        alglib::minbleicoptimize(state, function1_grad, NULL, &data );
+        alglib::minbleicresults(state, alg_x, rep);
 
-    //printf("%d\n", int(rep.terminationtype)); // EXPECTED: 4
-    if ( opt.debug ) printf("%s\n", alg_x.tostring(20).c_str());
+        if ( opt.debug ) {
+            printf("%d\n", int(rep.terminationtype)); // EXPECTED: 4
+            printf("%s\n", alg_x.tostring(20).c_str());
+        }
 
-    double cl_4 = composite_LogLikelihood( data.base, data.errRateV, alg_x );
-    if ( opt.debug ) cout << "l_c_hatTheta_c: " << setprecision(20) << cl_4 << endl;
+        cl_4 = composite_LogLikelihood( data.base, data.errRateV, alg_x );
+        if ( opt.debug ) cout << "cl_4: " << setprecision(20) << cl_4 << endl;
+    }
+    catch ( alglib::ap_error &e ) {
+        cerr << "catch error: " << e.msg << " at seq[" << new_s << "] qua[" << new_q << "]" << endl;
+    }
 
     map<char, string> init_V;
     map<char, string> bndu_V;
@@ -181,49 +199,35 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     {
         if ( it->second < opt.minSupOnEachStrand || it->second/depth < opt.minFractionInFam ) continue;
 
-        alglib::real_1d_array alg_x = init_V[ it->first ].c_str();
-        alglib::real_2d_array c = "[[1,1,1,1,1]]";
-        alglib::integer_1d_array ct = "[0]";
-        alglib::minbleicstate state;
-        alglib::minbleicreport rep;
-        alglib::real_1d_array bndl = "[0.0, 0.0, 0.0, 0.0]";
-        alglib::real_1d_array bndu = bndu_V[ it->first ].c_str();
+        double cl_3(0.0);
+        try {
+            alglib::real_1d_array alg_x = init_V[ it->first ].c_str();
+            alglib::real_1d_array bndu = bndu_V[ it->first ].c_str();
 
+            alglib::minbleiccreate(alg_x, state);
+            alglib::minbleicsetlc(state, c, ct);
+            alglib::minbleicsetbc(state, bndl, bndu);
+            alglib::minbleicsetcond(state, epsg, epsf, epsx, maxits);
+            alglib::minbleicoptimize(state, function1_grad, NULL, &data );
+            alglib::minbleicresults(state, alg_x, rep);
 
-        double epsg = 0.000001;
-        double epsf = 0;
-        double epsx = 0;
-        alglib::ae_int_t maxits = 0;
+            if ( opt.debug ) {
+                printf("%d\n", int(rep.terminationtype)); // EXPECTED: 4
+                printf("%s\n", alg_x.tostring(20).c_str());
+            }
 
-        alglib::minbleiccreate(alg_x, state);
+            cl_3 = composite_LogLikelihood( data.base, data.errRateV, alg_x );
+            if ( opt.debug ) cout << "cl_3: " << cl_3 << endl;
+        }
+        catch ( alglib::ap_error &e ) {
+            cerr << "catch error: " << e.msg << " at seq[" << new_s << "] qua[" << new_q
+                << "] for base[" << it->first << "]" << endl;
+        }
 
-        alglib::minbleicsetlc(state, c, ct);
-        alglib::minbleicsetbc(state, bndl, bndu);
-        alglib::minbleicsetcond(state, epsg, epsf, epsx, maxits);
-        alglib::minbleicoptimize(state, function1_grad, NULL, &data );
-        alglib::minbleicresults(state, alg_x, rep);
-
-        //printf("%d\n", int(rep.terminationtype)); // EXPECTED: 4
-        if ( opt.debug ) printf("%s\n", alg_x.tostring(20).c_str());
-
-        double cl_3 = composite_LogLikelihood( data.base, data.errRateV, alg_x );
-        if ( opt.debug ) cout << "3 l_c_hatTheta_c: " << cl_3 << endl;
-
-        if ( cl_4 - cl_3 > opt.lhrGapCutoff )
+        if ( cl_4 - cl_3 > 0 )
             ntP[ it->first ] = 1 - boost::math::cdf(X2_dist, 2*(cl_4 - cl_3) );
     }
 
     return ntP;
-
-}
-
-void function1_grad(const alglib::real_1d_array &x, double &func, alglib::real_1d_array &grad, void *opt_data)
-{
-    fn_data* objfn_data = reinterpret_cast<fn_data*>(opt_data);
-    const std::string &base = objfn_data->base;
-    const std::vector<double> &errRateV = objfn_data->errRateV;
-
-    func = -composite_LogLikelihood( base, errRateV, x);
-    grad = composite_score( base, errRateV, x );
 }
 
