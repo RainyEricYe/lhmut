@@ -11,7 +11,7 @@ main.o: main.cc main.h option.h
 	$(CC) -c $< -o $@
 
 likelihood.o: likelihood.cc likelihood.h main.h option.h
-	$(CC) -c $< $(INCLUDE) $(INCLUDE) -o $@
+	$(CC) -c $< $(INCLUDE) -o $@
 
 option.o: option.cc option.h
 	$(CC) -c $< -o $@
