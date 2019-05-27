@@ -29,12 +29,12 @@ double composite_LogLikelihood (
     double l_c(0.0);
 
     for (size_t i(0); i != base.size(); i++ ) {
-        const double &e = errRateV[i];
+        const double &e = errRateV[i]/3;
         switch( base[i] ) {
-            case 'A': l_c += log( (1-4*e/3) * theta[0] + e/3 ); break;
-            case 'C': l_c += log( (1-4*e/3) * theta[1] + e/3 ); break;
-            case 'G': l_c += log( (1-4*e/3) * theta[2] + e/3 ); break;
-            case 'T': l_c += log( (1-4*e/3) * theta[3] + e/3 ); break;
+            case 'A': l_c += log( (1-4*e) * theta[0] + e ); break;
+            case 'C': l_c += log( (1-4*e) * theta[1] + e ); break;
+            case 'G': l_c += log( (1-4*e) * theta[2] + e ); break;
+            case 'T': l_c += log( (1-4*e) * theta[3] + e ); break;
             default: cerr << "unknown base in " << base << endl,exit(1);
         }
     }
@@ -53,13 +53,13 @@ alglib::real_1d_array composite_score (
     alglib::real_1d_array U_c = "[0,0,0,0]";
 
     for (size_t i(0); i != base.size(); i++ ) {
-        const double &e = errRateV[i];
+        const double &e = errRateV[i]/3;
 
         switch( base[i] ) {
-            case 'A': U_c[0] -= (1-4*e/3) / ( (1-4*e/3)*theta[0] + e/3 );  break;
-            case 'C': U_c[1] -= (1-4*e/3) / ( (1-4*e/3)*theta[1] + e/3 );  break;
-            case 'G': U_c[2] -= (1-4*e/3) / ( (1-4*e/3)*theta[2] + e/3 );  break;
-            case 'T': U_c[3] -= (1-4*e/3) / ( (1-4*e/3)*theta[3] + e/3 );  break;
+            case 'A': U_c[0] -= (1-4*e) / ( (1-4*e)*theta[0] + e );  break;
+            case 'C': U_c[1] -= (1-4*e) / ( (1-4*e)*theta[1] + e );  break;
+            case 'G': U_c[2] -= (1-4*e) / ( (1-4*e)*theta[2] + e );  break;
+            case 'T': U_c[3] -= (1-4*e) / ( (1-4*e)*theta[3] + e );  break;
             default: cerr << "unknown base in " << base << endl, exit(1);
         }
     }
