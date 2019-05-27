@@ -3,12 +3,13 @@
 
 #include "main.h"
 #include "likelihood.h"
+
 #include "iomanip"
 
 int main( int argc, char **argv )
 {
     Option opt;
-    parseOption(argc, argv, opt);
+    opt.parse(argc, argv);
 
     ifstream inf(opt.infileName.c_str());
     ofstream outf(opt.outfileName.c_str());
