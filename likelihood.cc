@@ -18,6 +18,11 @@
 #include "optimization.h"
 #include "ap.h"
 
+struct fn_data {
+    std::string         base;
+    std::vector<double> errRateV;
+};
+
 // composite log likelihood: l_c(theta)
 // mat theta is a column vector which has 4 elements for A, C, G, T, respectively.
 //
