@@ -1,5 +1,4 @@
 #include "main.h"
-//#include "option.hpp"
 
 void replace (string &str, const string &from, const string &to, size_t more )
 {

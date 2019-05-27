@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "likelihood.h"
+#include "option.h"
 
 #include "iomanip"
 

@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "main.h"
-#include "option.hpp"
+#include "option.h"
 #include "likelihood.h"
 #include <boost/math/distributions/chi_squared.hpp>
 

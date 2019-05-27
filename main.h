@@ -14,9 +14,8 @@
 #include <getopt.h>
 #include <algorithm>
 
+#include "option.h"
 using namespace std;
-
-#include "option.hpp"
 
 typedef unsigned long ulong;
 typedef map<char,double> mCharDouble;
