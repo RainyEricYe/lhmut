@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "likelihood.h"
+#include "iomanip"
 
 int main( int argc, char **argv )
 {
@@ -88,8 +89,9 @@ int main( int argc, char **argv )
         if ( vnp.size() > 1 )
             sort(vnp.begin(), vnp.end(), _cmpBySecond_CharDouble);
 
+        outf << std::scientific;
         for ( auto &p : vnp ) {
-            outf << '\t' << p.first << ':' << p.second;
+            outf << '\t' << p.first << ':' << std::setprecision(16) << p.second;
         }
 
         outf << endl;
