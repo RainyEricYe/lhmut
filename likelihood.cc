@@ -149,6 +149,8 @@ mCharDouble llh_genotype(const string &s, const string &q, const Option &opt)
     double depth(new_s.size());
     vector<double> errV = quaToErrorRate(new_q, opt);
 
+    if ( depth == 0 ) return ntP;
+
     fn_data data;
     data.base = new_s;
     data.errRateV = errV;
