@@ -5,8 +5,6 @@
 #include "likelihood.h"
 #include "option.h"
 
-#include "iomanip"
-
 int main( int argc, char **argv )
 {
     Option opt;
@@ -91,9 +89,8 @@ int main( int argc, char **argv )
         if ( vnp.size() > 1 )
             sort(vnp.begin(), vnp.end(), _cmpBySecond_CharDouble);
 
-        outf << std::scientific;
         for ( auto &p : vnp ) {
-            outf << '\t' << p.first << ':' << std::setprecision(16) << p.second;
+            outf << '\t' << p.first << ':' << p.second;
         }
 
         outf << endl;
