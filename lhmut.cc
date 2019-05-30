@@ -77,20 +77,10 @@ int main( int argc, char **argv )
         for ( auto &p : vInsNum ) outf << "\tI+" << p.first << ':' << p.second;
         for ( auto &p : vDelNum ) outf << "\tD-" << p.first << ':' << p.second;
 
-        mCharDouble ntP = llh_genotype(baseStr, quaStr, opt);
+        map<char, vector<double> > ntPF = llh_genotype(baseStr, quaStr, opt);
 
-        if ( ntP.empty() ) {
-            outf << endl;
-            continue;
-        }
-
-        vector< pCharDouble > vnp(ntP.begin(), ntP.end());
-
-        if ( vnp.size() > 1 )
-            sort(vnp.begin(), vnp.end(), _cmpBySecond_CharDouble);
-
-        for ( auto &p : vnp ) {
-            outf << '\t' << p.first << ':' << p.second;
+        for ( auto &p : ntPF ) {
+            outf << '\t' << p.first << ":" << p.second.at(0) << ":" << p.second.at(1);
         }
 
         outf << endl;
