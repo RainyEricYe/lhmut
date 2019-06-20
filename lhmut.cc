@@ -5,6 +5,8 @@
 #include "likelihood.h"
 #include "option.h"
 
+#include "iomanip"
+
 int main( int argc, char **argv )
 {
     Option opt;
@@ -79,6 +81,7 @@ int main( int argc, char **argv )
 
         map<char, vector<double> > ntPF = llh_genotype(baseStr, quaStr, opt);
 
+        outf << std::scientific << std::setprecision(16);
         for ( auto &p : ntPF ) {
             outf << '\t' << p.first << ":" << p.second.at(0) << ":" << p.second.at(1);
         }
