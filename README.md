@@ -2,7 +2,7 @@
 lhmut is a likelihood-based mutation detector for SNV and small indel.
 
 # Preparatioon
-alglib-3.14.0 (http://www.alglib.net/translator/re/alglib-3.15.0.cpp.gpl.tgz)
+alglib-3.14.0 (http://www.alglib.net/translator/re/alglib-3.14.0.cpp.gpl.tgz)
 
 # Install
     wget https://github.com/RainyEricYe/lhmut.git
